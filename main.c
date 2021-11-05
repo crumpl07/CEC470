@@ -15,33 +15,26 @@ unsigned int PC = 0;
 
 int main(int argc, char *argv[])
 {
-    /*
-    FILE *in;
-    unsigned char chOne, chTwo;
-    unsigned char memarray[65536]={0};
-    int i=0;
-    in=fopen("mem_in.txt","r");
-    if(in)
-    {
-        while(!feof(in))  //this is just saving the txt file to the str array
-        {
-	        chOne=getc(in);
-            //chTwo=getc(in);
-   	        memarray[i] = chOne;
-            //printf("%c",memarray[i]);
-	        i++;
-        }
-    }
-    printf("Hello There %c", memarray[64500]);
-    printf("\n");
-    fclose(in);
     
-    removeSpaces(memarray);
-    removeNewLines(memarray);
-    */
-    char * x = getBinary("ff");
-    printf("%s", x);
+
+    //readFile();
+    //printf("%c", memory[0]);
     return 0;
+}
+
+void fetchNextInstruction(void)
+{
+/*
+Use the program counter (PC) as an index to retrieve an instruction from the array 
+memory[].
+
+Store the retrieved instruction to the instruction register (IR).
+
+Determine from the instruction how much to increment PC so that it points to the 
+next instruction in memory[] and perform the increment.
+*/
+    //printf("%c", &memory[PC]);
+    //IR = &memory[PC];
 }
 
 int readFile()
@@ -51,21 +44,15 @@ int readFile()
 	FILE * fp = fopen(filename, "r"); 
 	if (fp == NULL) 
         return 1; 
-	char c; 
+	unsigned char c; 
     int i = 0;
     //Iterate through file and grab info
 	while((c = fgetc(fp)) != EOF) 
 	{
-		if(c == ' ' || c == '\n') 
-		{ 
-            if (c == ' ')
-                printf(" ");
-            else 
-                printf("\n");
-		} 
-		else 
+		if(c != ' ' || c != '\n') 
 		{ 
             memory[i] = c;
+            //printf("%c", memory[i]);
 		} 
         i++;
 	} 
