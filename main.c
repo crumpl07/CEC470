@@ -7,6 +7,8 @@
 void fetchNextInstruciton(void);
 void executeInstruction(void);
 unsigned char domath(int in, int out, char op);
+unsigned int get16oprand(void);
+unsigned char get8oprand(void);
 
 //Global Variables
 unsigned int MAR = 0;
@@ -42,10 +44,12 @@ unsigned char executeInstruction(void) //This function was written by Sean Huber
     unsigned char destination;
     unsigned char source;
     unsigned int mathin;
-    unsigned char mathout;
+    unsigned int mathout;
     unsigned char mempos;
+    unsigned char reg;
+    unsigned char method;
     //Math section
-    if (IR & 0x80) {
+    if ((IR & 0x80) == 0x80) {
         // creating easier to work with variables based on the call for mathmatical operations
         function = (IR & 0xF0) >> 4;
         destination = (IR & 0x0C) >> 2;
@@ -58,11 +62,16 @@ unsigned char executeInstruction(void) //This function was written by Sean Huber
         case 0x1: // ACC i got that here
             mathin = ACC;
             break;
-        case 0x2: // Address register MAR address is in mar
-            mathin = (memory[PC + 1] & (memory[PC + 2] << 8));
+        case 0x2: // Constant 
+            if (destination == 0x1) {
+                mathin = get8oprand();
+            }
+            else {
+                mathin = get16oprand();
+            }
             break;
         case 0x3: // Direct memory address
-            mathin = (memory[PC + 1] & (memory[PC + 2] << 8));
+            mathin = get16oprand();
             break;
         }
         switch (destination) { // This pulls the vlaue for the destination for mathmatical operations because i suck at pointers and addressing
@@ -74,19 +83,59 @@ unsigned char executeInstruction(void) //This function was written by Sean Huber
             mathout = ACC;
             ACC = domath(mathin, mathout, function);
             break;
-        case 0x2: // Constant look for the next 
+        case 0x2: // MAR destination
             mathout = MAR;
             MAR = domath(mathin, mathout, function);
             break;
         case 0x3: // Direct memory address
-            mathout = (memory[PC + 1] & (memory[PC + 2] << 8));
+            mathout = get16oprand();
             memory[PC + 1] = (domath(mathin, mathout, function) & 0x00FF);
             memory[PC + 2] = ((domath(mathin, mathout, function) & 0xFF00) >> 8);
             break;
         }
             
     }
+    // Memory operations section
+    if (((IR & 0xF0) == 0x00) && IR > 0x00) {   //This function was written by Sean Huber, created on 11/9/2021 Edited by: No one so far :)
+        function = IR & 0x08;
+        reg = IR & 0x04;
+        method = IR & 0x03;
+
+        switch (function) {
+        case 0x0: // Store
+            switch (method) {
+            case 0x0: // Oprand is used as address
+                if (reg == 0x0) {
+                    memeory[get16oprand()] = ACC;
+                }
+                if (reg == 0x1) {
+                    memory[MAR] = ACC;
+                }
+                break;
+            case 0x1: // Operand is used as a constant
+                
+                break;
+            case 0x2: // Indirect (MAR used as pointer)
+
+                break;
+            }
+            break;
+        case 0x1: // Load
+
+            break;
+        }
+
+    }
+
+
     return 0;
+}
+
+unsigned int get16oprand(void) {
+    return (memory[PC + 1] & (memory[PC + 2] << 8));
+}
+unsigned int get8oprand(void) {
+    return (memory[PC + 1]);
 }
 
 unsigned char domath(int in, int out, char op) //This function was written by Sean Huber, created on 11/5/2021 Edited by: No one so far :)
@@ -121,4 +170,6 @@ unsigned char domath(int in, int out, char op) //This function was written by Se
     return temp;
 
 }
+
+
 
