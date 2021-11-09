@@ -59,14 +59,15 @@ unsigned char executeInstruction(void) //This function was written by Sean Huber
             mathin = ACC;
             break;
         case 0x2: // Address register MAR address is in mar
-            mathin = (memory[PC + 1] & (memory[PC + 2] << 4));
+            mathin = (memory[PC + 1] & (memory[PC + 2] << 8));
             break;
         case 0x3: // Direct memory address
-            mathin = (memory[PC + 1] & (memory[PC + 2] << 4));
+            mathin = (memory[PC + 1] & (memory[PC + 2] << 8));
             break;
         }
         switch (destination) { // This pulls the vlaue for the destination for mathmatical operations because i suck at pointers and addressing
         case 0x0: // MAR as memory pointer requires memory call
+            mathout = memory[MAR];
             memory[MAR] = domath(mathin, mathout, function);
             break;
         case 0x1: // ACC i got that here
@@ -74,11 +75,13 @@ unsigned char executeInstruction(void) //This function was written by Sean Huber
             ACC = domath(mathin, mathout, function);
             break;
         case 0x2: // Constant look for the next 
+            mathout = MAR;
             MAR = domath(mathin, mathout, function);
             break;
         case 0x3: // Direct memory address
-            memory[PC + 1] = (domath(mathin, mathout, function) & 0x0F);
-            memory[PC + 2] = ((domath(mathin, mathout, function) & 0xF0) >> 4);
+            mathout = (memory[PC + 1] & (memory[PC + 2] << 8));
+            memory[PC + 1] = (domath(mathin, mathout, function) & 0x00FF);
+            memory[PC + 2] = ((domath(mathin, mathout, function) & 0xFF00) >> 8);
             break;
         }
             
