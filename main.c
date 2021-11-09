@@ -6,7 +6,7 @@
 //Function Declarations
 void fetchNextInstruciton(void);
 void executeInstruction(void);
-unsigned char domath(char in, char out, char op);
+unsigned char domath(int in, int out, char op);
 
 //Global Variables
 unsigned int MAR = 0;
@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
     while (memory[PC] != HALT_OPCODE)
     {
         fetchNextInstruciton();
-        executeInstruction(); 
+        executeInstruction();   
     }
     return 0;
 }
@@ -41,7 +41,7 @@ unsigned char executeInstruction(void) //This function was written by Sean Huber
     unsigned char function;
     unsigned char destination;
     unsigned char source;
-    unsigned char mathin;
+    unsigned int mathin;
     unsigned char mathout;
     unsigned char mempos;
     //Math section
@@ -53,45 +53,40 @@ unsigned char executeInstruction(void) //This function was written by Sean Huber
         // Accuiring the in data
         switch (source) { // This pulls the value required for mathmatical operations becuase i suck at pointers and adressing
         case 0x0: // MAR as memory pointer requires memory call
-            
+            mathin = memory[MAR];
             break;
         case 0x1: // ACC i got that here
             mathin = ACC;
             break;
         case 0x2: // Address register MAR address is in mar
-
+            mathin = (memory[PC + 1] & (memory[PC + 2] << 4));
             break;
         case 0x3: // Direct memory address
-            
+            mathin = (memory[PC + 1] & (memory[PC + 2] << 4));
             break;
         }
         switch (destination) { // This pulls the vlaue for the destination for mathmatical operations because i suck at pointers and addressing
         case 0x0: // MAR as memory pointer requires memory call
-
+            memory[MAR] = domath(mathin, mathout, function);
             break;
         case 0x1: // ACC i got that here
             mathout = ACC;
             ACC = domath(mathin, mathout, function);
             break;
         case 0x2: // Constant look for the next 
-
+            MAR = domath(mathin, mathout, function);
             break;
         case 0x3: // Direct memory address
-
+            memory[PC + 1] = (domath(mathin, mathout, function) & 0x0F);
+            memory[PC + 2] = ((domath(mathin, mathout, function) & 0xF0) >> 4);
             break;
         }
-        
-
-
-         
+            
     }
-
-
-
     return 0;
 }
 
-unsigned char domath(char in, char out, char op) //This function was written by Sean Huber, created on 11/5/2021 Edited by: No one so far :)
+unsigned char domath(int in, int out, char op) //This function was written by Sean Huber, created on 11/5/2021 Edited by: No one so far :)
 {
     unsigned int temp;
     switch (op) {
