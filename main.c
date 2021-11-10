@@ -27,16 +27,6 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-/*
-This section is for anyone reading the code while under construction.
-Here I will detail the order of operations that entail the support of other sections.
-So far there are no requests.
-*/
-
-
-
-
-
 unsigned char executeInstruction(void) //This function was written by Sean Huber, created on 11/5/2021 Edited by: No one so far :)
 {   
     //local variables
@@ -109,32 +99,68 @@ unsigned char executeInstruction(void) //This function was written by Sean Huber
                     memeory[get16oprand()] = ACC;
                 }
                 if (reg == 0x1) {
-                    memory[MAR] = ACC;
+                    memory[get16oprand()] = (MAR & 0x0F);
+                    memory[get16oprand()+1] = ((MAR & 0xF0)>>8);
                 }
                 break;
             case 0x1: // Operand is used as a constant
-                
+                if (reg == 0x0) {
+                    memeory[get16oprand()] = ACC;
+                }
+                if (reg == 0x1) {
+                    memory[get16oprand()] = (MAR & 0x0F);
+                    memory[get16oprand() + 1] = ((MAR & 0xF0) >> 8);
+                }
                 break;
             case 0x2: // Indirect (MAR used as pointer)
-
+                if (reg == 0x0) {
+                    memeory[MAR] = ACC;
+                }
+                if (reg == 0x1) {
+                    memory[MAR] = MAR;
+                }
                 break;
             }
             break;
         case 0x1: // Load
-
+            switch (method){
+            case 0x0: // Oprand is used as address
+                if (reg == 0x0) {
+                    ACC = memory[get16oprand()];
+                }
+                if (reg == 0x1) {
+                    MAR = memory[get16oprand()];
+                }
+                break;
+            case 0x1: // Operand is used as a constant
+                if (reg == 0x0) {
+                    ACC = memory[get16oprand()];
+                }
+                if (reg == 0x1) {
+                    MAR = memory[get16oprand()];
+                }
+                break;
+            case 0x2: // Indirect (MAR used as pointer)
+                if (reg == 0x0) {
+                    ACC = memory[MAR];
+                }
+                if (reg == 0x1) {
+                    MAR = memory[MAR];
+                }
+                break;
+            }
             break;
         }
 
     }
 
-
     return 0;
 }
 
 unsigned int get16oprand(void) {
-    return (memory[PC + 1] & (memory[PC + 2] << 8));
+    return ((memory[PC + 1] & (memory[PC + 2] << 8)));
 }
-unsigned int get8oprand(void) {
+unsigned char get8oprand(void) {
     return (memory[PC + 1]);
 }
 
@@ -170,6 +196,3 @@ unsigned char domath(int in, int out, char op) //This function was written by Se
     return temp;
 
 }
-
-
-
