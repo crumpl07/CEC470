@@ -80,7 +80,9 @@ unsigned char executeInstruction(void) //This function was written by Sean Huber
         case 0x3: // Direct memory address
             mathout = get16oprand();
             memory[PC + 1] = (domath(mathin, mathout, function) & 0x00FF);
-            memory[PC + 2] = ((domath(mathin, mathout, function) & 0xFF00) >> 8);
+            //PC++; if active replace the 1 below with a 2
+            memory[PC + 1] = ((domath(mathin, mathout, function) & 0xFF00) >> 8);
+            //PC++; pretty sure we are gonna need this so ill leave this here <-------------------------------
             break;
         }
             
@@ -153,15 +155,56 @@ unsigned char executeInstruction(void) //This function was written by Sean Huber
         }
 
     }
+    // Jumps and Branches This section was written by Gabriel S.
+    if ((IR & 0xF8) == 0x10) {
 
+
+        unsigned char jump = IR & 0x07;
+        unsigned char comACC = ACC & 0x80;
+
+        switch (jump) {   //different branchings
+        case 0: // BRA
+            PC = memory[get16oprand()];
+            break;
+        case 1: // BRZ
+            if (ACC == 0)
+                PC = memory[get16oprand()];
+            break;
+        case 2:  // BNE
+            if (ACC != 0)
+                PC = memory[get16oprand()];
+            break;
+        case 3: // BLT
+            if (comACC != 0)
+                PC = memory[get16oprand()];
+            break;
+        case 4: // BLE
+            if ((comACC != 0) || (ACC == 0))
+                PC = memory[get16oprand()];
+            break;
+        case 5: // BGT
+            if ((ACC == 0) && (ACC != 0))
+                PC = memory[get16oprand()];
+            break;
+        case 6: // BGE
+            if (comACC == 0)
+                PC = memory[get16oprand()];
+            break;
+        }
+
+    }
     return 0;
 }
 
 unsigned int get16oprand(void) {
-    return ((memory[PC + 1] & (memory[PC + 2] << 8)));
+    unsigned int temp16 = ((memory[PC + 1] & (memory[PC + 2] << 8)));
+    //PC = PC + 2; Pretty sure this will be needed 50/50 so ill leave this here <-----
+    return temp16;
 }
 unsigned char get8oprand(void) {
-    return (memory[PC + 1]);
+    unsigned int temp8 = (memory[PC + 1]);
+    //PC = PC + 1; Pretty sure this will be neeed 50/50 so ill leave this here <---------
+    return temp8;
 }
 
 unsigned char domath(int in, int out, char op) //This function was written by Sean Huber, created on 11/5/2021 Edited by: No one so far :)
