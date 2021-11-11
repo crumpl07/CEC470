@@ -278,6 +278,45 @@ unsigned char executeInstruction(void) //This function was written by Sean Huber
 
     }
 
+    // Jumps and Branches This section was written by Gabriel S.
+    if ((IR & 0xF8) == 0x10) {
+
+
+        unsigned char jump = IR & 0x07;
+        unsigned char comACC = ACC & 0x80;
+
+        switch (jump) {   //different branchings
+        case 0: // BRA
+            PC = memory[get16oprand()];
+            break;
+        case 1: // BRZ
+            if (ACC == 0)
+                PC = memory[get16oprand()];
+            break;
+        case 2:  // BNE
+            if (ACC != 0)
+                PC = memory[get16oprand()];
+            break;
+        case 3: // BLT
+            if (comACC != 0)
+                PC = memory[get16oprand()];
+            break;
+        case 4: // BLE
+            if ((comACC != 0) || (ACC == 0))
+                PC = memory[get16oprand()];
+            break;
+        case 5: // BGT
+            if ((ACC == 0) && (ACC != 0))
+                PC = memory[get16oprand()];
+            break;
+        case 6: // BGE
+            if (comACC == 0)
+                PC = memory[get16oprand()];
+            break;
+        }
+
+    }
+
     return 0;
 }
 
