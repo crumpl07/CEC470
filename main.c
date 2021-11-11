@@ -40,6 +40,7 @@ void fetchNextInstruciton(void)
     oldPC = PC;
     PC++;
 
+    //If math function
 	if(IR & 0x80)
     {
 		switch(IR & 0x0c)// Checks the Destination of the instruction
@@ -118,6 +119,7 @@ void fetchNextInstruciton(void)
 				break;
 		}
 	}
+    //Else its a memory operation
 	else if((IR & 0xf0) == 0)
     {
 		switch(IR & 0x7)
