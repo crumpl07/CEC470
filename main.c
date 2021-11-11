@@ -1,115 +1,6 @@
-<<<<<<< Updated upstream
-# include <stdio.h>
-# include <stdlib.h>
-# include <string.h>
-
-void fetchNextInstruction(void);
-int readFile(void);
-char * getBinary(char * hexValue);
-char * valueOf(char digit);
-
-unsigned char memory[65536];
-unsigned char ACC = 0;
-unsigned char IR = 0;
-unsigned int MAR = 0;
-unsigned int PC = 0;
-
-int main(int argc, char *argv[])
-{
-    
-
-    //readFile();
-    //printf("%c", memory[0]);
-    return 0;
-}
-
-void fetchNextInstruction(void)
-{
-/*
-Use the program counter (PC) as an index to retrieve an instruction from the array 
-memory[].
-
-Store the retrieved instruction to the instruction register (IR).
-
-Determine from the instruction how much to increment PC so that it points to the 
-next instruction in memory[] and perform the increment.
-*/
-    //printf("%c", &memory[PC]);
-    //IR = &memory[PC];
-}
-
-int readFile()
-{ 
-    //Read file
-	char * filename = "mem_in.txt"; 
-	FILE * fp = fopen(filename, "r"); 
-	if (fp == NULL) 
-        return 1; 
-	unsigned char c; 
-    int i = 0;
-    //Iterate through file and grab info
-	while((c = fgetc(fp)) != EOF) 
-	{
-		if(c != ' ' || c != '\n') 
-		{ 
-            memory[i] = c;
-            //printf("%c", memory[i]);
-		} 
-        i++;
-	} 
-	fclose(fp);
-}
-
-char * valueOf(char digit)
-{
-    switch(digit)
-    {
-        case '0': return "0000";
-        case '1': return "0001";
-        case '2': return "0010";
-        case '3': return "0011";
-        case '4': return "0100";
-        case '5': return "0101";
-        case '6': return "0110";
-        case '7': return "0111";
-        case '8': return "1000";
-        case '9': return "1001";
-        case 'A':
-        case 'a': return "1010";
-        case 'B':
-        case 'b': return "1011";
-        case 'C':
-        case 'c': return "1100";
-        case 'D':
-        case 'd': return "1101";
-        case 'E':
-        case 'e': return "1110";
-        case 'F':
-        case 'f': return "1111";
-        default:
-        {
-            printf("Cannot decode that symbol: %c", digit);
-            return 0;
-        }
-    }
-}
-
-char * getBinary(char * hexValue)
-{
-    char *hexOne;
-    char *hexTwo;
-    hexOne = valueOf(hexValue[0]);
-    hexTwo = valueOf(hexValue[1]);
-    char *result = malloc(strlen(hexOne) + strlen(hexTwo) + 1);
-    strcpy(result,hexOne);
-    strcat(result,hexTwo);
-
-    return result;
-}
-
-=======
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #define HALT_OPCODE 0x19
 
@@ -119,22 +10,143 @@ unsigned char executeInstruction(void);
 unsigned char domath(int in, int out, char op);
 unsigned int get16oprand(void);
 unsigned char get8oprand(void);
+int readFile(void);
+unsigned char valueOf(unsigned char);
 
 //Global Variables
 unsigned int MAR = 0;
 unsigned int PC = 0;
+unsigned int oldPC = 0;
+unsigned int operand = 0;
 unsigned char memory[65536];
 unsigned char ACC = 0;
 unsigned char IR = 0;
 
 int main(int argc, char* argv[])
 {
+    int x = 0;
+    readFile();
     while (memory[PC] != HALT_OPCODE)
     {
         fetchNextInstruciton();
         executeInstruction();   
     }
     return 0;
+}
+
+void fetchNextInstruciton(void)
+{
+    IR = memory[PC];
+    oldPC = PC;
+    PC++;
+
+	if(IR & 0x80)
+    {
+		switch(IR & 0x0c)// Checks the Destination of the instruction
+        { 
+			case 0x00: 
+				switch(IR & 0x03)
+                {
+					case 0: // Indirect (MAR used as a pointer)
+						break;
+					case 1: // Accumulator ACC
+						break;
+					case 2: // Constant
+						PC++;
+						break;
+					case 3: // Memory
+						PC += 2;
+						break;
+					default:
+						break;
+				}
+				break;
+			case 0x04: // Sets the destination as an ACC
+				switch(IR & 0x03)
+                {
+					case 0: // Indirect (MAR used as a pointer)
+						break;
+					case 1: // Accumulator ACC
+						break;
+					case 2: // Constant
+						PC++;
+						break;
+					case 3: // Memory
+						PC += 2;
+						break;
+					default:
+						break;
+				}
+				break;
+			case 0x08: // Sets the destination to Address register MAR
+				switch(IR & 0x03)
+                { 
+					case 0: // Indirect (MAR used as a pointer)
+						break;
+					case 1: // Accumulator ACC
+						break;
+					case 2: // Constant
+						PC += 2;
+						break;
+					case 3: // Memory
+						PC += 2;
+						break;
+					default:
+						break;
+				}
+				break;
+			case 0x0c: // Sets the destination to Memory
+				switch(IR & 0x03)
+                {
+					case 0: 
+						PC += 2;
+						break;
+					case 1: // Accumulator ACC
+						PC += 2;
+						break;
+					case 2: // Constant
+						PC += 3;
+						break;
+					case 3: // Memory
+						PC += 4;
+						break;
+					default:
+						break;
+				}
+				break;
+			default:
+				break;
+		}
+	}
+	else if((IR & 0xf0) == 0)
+    {
+		switch(IR & 0x7)
+        {
+			case 0:
+				PC += 2;
+				break;
+			case 1:
+				PC++;
+				break;
+			case 2:
+				break;
+			case 4: 
+				PC += 2;
+				break;
+			case 5: 
+				PC += 2;
+				break;
+			case 6: 
+				break;
+			default:
+				break;
+		}
+	}
+	else if((IR & 0xf8) == 0X10) // Branches
+		PC += 2;
+
+	operand = PC - oldPC - 1;
+	PC &= 0xffff;
 }
 
 unsigned char executeInstruction(void) //This function was written by Sean Huber, created on 11/5/2021 Edited by: No one so far :)
@@ -306,4 +318,57 @@ unsigned char domath(int in, int out, char op) //This function was written by Se
     return temp;
 
 }
->>>>>>> Stashed changes
+
+unsigned char valueOf(unsigned char digit)
+{
+    switch(digit)
+    {
+        case '0': return 0x0;
+        case '1': return 0x1;
+        case '2': return 0x2;
+        case '3': return 0x3;
+        case '4': return 0x4;
+        case '5': return 0x5;
+        case '6': return 0x6;
+        case '7': return 0x7;
+        case '8': return 0x8;
+        case '9': return 0x9;
+        case 'A':
+        case 'a': return 0xa;
+        case 'B':
+        case 'b': return 0xb;
+        case 'C':
+        case 'c': return 0xc;
+        case 'D':
+        case 'd': return 0xd;
+        case 'E':
+        case 'e': return 0xe;
+        case 'F':
+        case 'f': return 0xf;
+        default:
+        {
+            //printf("Cannot decode that symbol: %c", digit);
+            return 0;
+        }
+    }
+}
+
+int readFile(void)//Function created by Sauvageau on 11/4/2021
+{
+    FILE * fp;
+    fp = fopen("mem_in.txt", "r");
+    if(fp == NULL)
+        return 1;
+    int c = 0;
+    int16_t i = 0;
+    while((c = fgetc(fp)) != EOF)
+    {
+        if(c != ' ' && c != '\n')
+        {
+            memory[i] = valueOf(c);
+            i++;
+        }  
+    }
+    fclose(fp);
+    return 0;
+}
